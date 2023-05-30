@@ -1,2 +1,2 @@
 # Tenzies
- Tenzies dice game
+ Tenzies dice game built with React.

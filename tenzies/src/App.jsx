@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import Die from "./Die"
+import Timer from "./Timer"
 import { nanoid } from 'nanoid'
 import Confetti from 'react-confetti'
 function App() {
@@ -7,9 +8,23 @@ function App() {
   const [dice, setDice] = useState(allNewDice())
   const [tenzies, setTenzies] = useState(false)
   const [rolls, setRolls] = useState(0)
+  const [seconds, setSeconds] = useState(0)
+  const [minutes, setMinutes] = useState(0)
 
-
-  console.log(rolls)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if(!tenzies) {
+        setSeconds(prevSec => prevSec + 1)
+        if(seconds === 59) {
+          setMinutes(prevMin => prevMin + 1)
+          setSeconds(0)
+        }
+      }
+    }, 1000)
+    return () => {
+      clearInterval(interval)
+    }
+  }, [seconds])
 
   useEffect(() => {
     const allHeld = dice.every(die => die.isHeld)
@@ -44,9 +59,10 @@ function App() {
       }))
       setRolls(oldRolls => oldRolls + 1)
     } else {
-      setTenzies(false)
-      setDice(allNewDice())
-      setRolls(0)
+      // setTenzies(false)
+      // setDice(allNewDice())
+      // setRolls(0)
+      window.location.reload()
     }
   }
 
@@ -76,7 +92,7 @@ function App() {
       <p className="instructions">{tenzies ? "You Won!" : "Roll until all dice are the same. Click each die to freeze it at its current value between rolls."}</p>
       <div className="rolls-timer-container">
         <p className="rolls">{rolls}</p>
-        <p className="timer">Timer</p>
+        <p className="timer">{minutes < 10 && 0}{minutes}:{seconds < 10 && 0}{seconds}</p>
       </div>
       <div className="main-div">
         {dieElements}

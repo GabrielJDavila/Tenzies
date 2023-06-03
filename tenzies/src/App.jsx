@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import Die from "./Die"
-import Timer from "./Timer"
+import Scoreboard from './Scoreboard'
 import { nanoid } from 'nanoid'
 import Confetti from 'react-confetti'
 function App() {
@@ -10,6 +10,8 @@ function App() {
   const [rolls, setRolls] = useState(0)
   const [seconds, setSeconds] = useState(0)
   const [minutes, setMinutes] = useState(0)
+  const [savedData, setSavedData] = useState([])
+  const [showScoreboard, setShowScoreboard] = useState(false)
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -25,6 +27,14 @@ function App() {
       clearInterval(interval)
     }
   }, [seconds])
+
+  useEffect(() => {
+    const data = localStorage.getItem("data")
+    if(data) {
+      setSavedData(data)
+      console.log(data.score)
+    }
+  }, [])
 
   useEffect(() => {
     const allHeld = dice.every(die => die.isHeld)
@@ -59,10 +69,11 @@ function App() {
       }))
       setRolls(oldRolls => oldRolls + 1)
     } else {
-      // setTenzies(false)
-      // setDice(allNewDice())
-      // setRolls(0)
-      window.location.reload()
+      setTenzies(false)
+      setDice(allNewDice())
+      setRolls(0)
+      setSeconds(0)
+      setMinutes(0)
     }
   }
 
@@ -83,22 +94,53 @@ function App() {
       isHeld={die.isHeld}
       holdDie={() => holdDice(die.id)}
     />
-    ))
+  ))
+  
+  function flipShow() {
+    setShowScoreboard(prevShow => !prevShow)
+    if(showScoreboard) {
+      window.location.reload()
+    }
+  }
+
+  function addToScoreboard() {
+    const score = {
+      timeMin: minutes,
+      timeSec: seconds,
+      rollCount: rolls
+    }
+    localStorage.setItem("data", score)
+  }
 
   return (
-    <main>
-      {tenzies && <Confetti />}
-      <h1 className="title">Tenzies</h1>
-      <p className="instructions">{tenzies ? "You Won!" : "Roll until all dice are the same. Click each die to freeze it at its current value between rolls."}</p>
-      <div className="rolls-timer-container">
-        <p className="rolls">{rolls}</p>
-        <p className="timer">{minutes < 10 && 0}{minutes}:{seconds < 10 && 0}{seconds}</p>
-      </div>
-      <div className="main-div">
-        {dieElements}
-      </div>
-      <button onClick={rollNewDice} className="roll-dice">{tenzies ? "New Game" : "Roll New Dice"}</button>
-    </main>
+    <div>
+      {
+      !showScoreboard &&
+      <main>
+        {tenzies && <Confetti />}
+        <h1 className="title">Tenzies</h1>
+        <p className="instructions">{tenzies ? "You Won!" : "Roll until all dice are the same. Click each die to freeze it at its current value between rolls."}</p>
+        <div className="rolls-timer-container">
+          <p className="rolls">Rolls: {rolls}</p>
+          <p className="timer">Time: {minutes < 10 && 0}{minutes}:{seconds < 10 && 0}{seconds}</p>
+          <button className="scoreboard-btn" onClick={flipShow}>Scoreboard</button>
+        </div>
+        <div className="main-div">
+          {dieElements}
+        </div>
+        <div className="bottom-btns-container">
+          <button onClick={rollNewDice} className="roll-dice">{tenzies ? "New Game" : "Roll New Dice"}</button>
+          {tenzies && <button onClick={addToScoreboard}>Add to scoreboard</button>}
+        </div>
+      </main>
+      }
+      {
+        showScoreboard &&
+        <Scoreboard
+          flipShow={flipShow}
+        />
+        }
+    </div>
   )
 }
 

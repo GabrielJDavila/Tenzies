@@ -1,27 +1,41 @@
 
 export default function Scoreboard(props) {
     
-    const users = props.data.map(user => <p>{user.name}</p>)
-    const userTime = props.data.map(user => <p>{user.min} : {user.sec}</p>)
-    const userRolls = props.data.map(user => <p>{user.rolls}</p>)
-    
+    const sortedData = [...props.data].sort((a, b) => {
+        if(a.min === b.min) {
+            return a.sec - b.sec
+        } else {
+            return a.min - b.min
+        }
+    })
+
+    const users = sortedData.map(user => <p key={user.name}>{user.name}</p>)
+    const userTime = sortedData.map(user => <p key={user.name}>{user.min < 10 && 0}{user.min} : {user.sec < 10 && 0}{user.sec}</p>)
+    const userRolls = sortedData.map(user => <p key={user.name}>{user.rolls}</p>)
+    const rank = sortedData.map((user, index) => (
+        <p key={user.name} className="rank">{index + 1}</p>
+    ))
+
     return (
-        <div>
+        <div className="scoreboard-component">
             <h1 className="scoreboard-title">Scoreboard</h1>
             <div className="scoreboard-container">
                 <div className="names-column">
-                    <p>Name</p>
+                    <p className="column-title">Name</p>
                     {users}
                 </div>
                 <div className="time-column">
-                    <p>Time</p>
+                    <p className="column-title">Time</p>
                     {userTime}
                 </div>
                 <div className="rolls-column">
-                    <p>Rolls</p>
+                    <p className="column-title">Rolls</p>
                     {userRolls}
                 </div>
-                <div className="spot-column"></div>
+                <div className="rank-column">
+                    <p className="column-title">Rank</p>
+                    {rank}
+                </div>
                 
             </div>
             <button className="backToGame" onClick={props.flipShow}>back to game</button>

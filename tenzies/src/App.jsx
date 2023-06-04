@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react'
 import Die from "./Die"
 import Scoreboard from './Scoreboard'
+import Gamedata from './gameData'
+import Buttons from './Buttons'
+import { flipShow, addToScoreboard, setUser } from './Utilities'
 import { nanoid } from 'nanoid'
 import Confetti from 'react-confetti'
 function App() {
@@ -16,6 +19,9 @@ function App() {
   const [savedData, setSavedData] = useState(
     JSON.parse(localStorage.getItem("data")) || [])
   const [showScoreboard, setShowScoreboard] = useState(false)
+  const handleFlipShow = () => flipShow(setShowScoreboard, showScoreboard)
+  const handleAddToScoreboard = () => addToScoreboard(userData, savedData, setSavedData)
+  const handleSetUser = (e) => setUser(e, setUserData)
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -55,6 +61,7 @@ function App() {
       setTenzies(true)
     }
   }, [dice])
+
   function generateNewDie() {
     return {
       value: Math.ceil(Math.random() * 6),
@@ -118,30 +125,6 @@ function App() {
     />
   ))
   
-  function flipShow() {
-    setShowScoreboard(prevShow => !prevShow)
-    if(showScoreboard) {
-      window.location.reload()
-    }
-  }
-
-  function addToScoreboard() {
-    let data = userData
-    const updatedData = [...savedData, data]
-    localStorage.setItem("data", JSON.stringify(updatedData))
-    setSavedData(updatedData)
-    console.log(savedData)
-  }
-
-  function setUser(e) {
-    const {name, value} = e.target
-    setUserData(prevData => {
-      return {
-        ...prevData,
-        [name]: value
-      }
-    })
-  }
   return (
     <div>
       {
@@ -150,44 +133,29 @@ function App() {
         {tenzies && <Confetti />}
         <h1 className="title">Tenzies</h1>
         <p className="instructions">{tenzies ? "You Won!" : "Roll until all dice are the same. Click each die to freeze it at its current value between rolls."}</p>
-        <div className="rolls-timer-container">
-          <p className="rolls">Rolls: {userData.rolls}</p>
-          <p className="timer">Time: {userData.min < 10 && 0}{userData.min}:{userData.sec < 10 && 0}{userData.sec}</p>
-          <button className="scoreboard-btn" onClick={flipShow}>Scoreboard</button>
-        </div>
+        <Gamedata
+          userData={userData}
+          flipShow={handleFlipShow}
+        />
         <div className="main-div">
           {dieElements}
         </div>
-        <div className="bottom-btns-container">
-          <button onClick={rollNewDice} className="roll-dice">{tenzies ? "New Game" : "Roll New Dice"}</button>
-          {tenzies &&
-          <div className="user-info">
-            <input
-              type="text"
-              className="username"
-              placeholder="enter name"
-              name="name"
-              value={userData.name}
-              onChange={setUser}
-            >
-            </input>
-            <button
-              onClick={addToScoreboard}
-            >
-              Add to scoreboard
-            </button>
-          </div>
-          }
-        </div>
+        <Buttons
+          tenzies={tenzies}
+          rollNewDice={rollNewDice}
+          userData={userData}
+          handleSetUser={handleSetUser}
+          handleAddToScoreboard={handleAddToScoreboard}
+        />
       </main>
       }
       {
         showScoreboard &&
         <Scoreboard
-          flipShow={flipShow}
+          flipShow={handleFlipShow}
           data={savedData}
         />
-        }
+      }
     </div>
   )
 }
